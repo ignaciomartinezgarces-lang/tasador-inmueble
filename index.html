@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tasador de Inmuebles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F6F3;--bg2:#FFFFFF;--bg3:#F0EDE8;
+  --text:#1A1A1A;--text2:#666;--text3:#AAA;
+  --border:#E0DDD6;--border2:#C8C4BB;
+  --accent:#1A1A1A;--accent-text:#FFFFFF;
+  --info:#185FA5;
+}
+body{font-family:'Geist',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-top{padding:22px 20px;border-bottom:1px solid var(--border)}
+.wordmark{font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);letter-spacing:-0.01em}
+.wordmark em{font-style:italic;color:var(--text2)}
+.wordmark small{display:block;font-family:'Geist',sans-serif;font-size:10px;font-weight:400;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px}
+.sidebar-section{padding:16px 16px 0}
+.sidebar-label{font-size:10px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding-left:4px}
+.hist-list{display:flex;flex-direction:column;gap:3px}
+.hist-item{padding:9px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all 0.12s}
+.hist-item:hover{background:var(--bg);border-color:var(--border)}
+.hist-item.active{background:var(--bg);border-color:var(--border2)}
+.hi-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.hi-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.hi-price{font-size:12px;color:var(--info);font-weight:500;white-space:nowrap}
+.hi-meta{font-size:11px;color:var(--text3)}
+.sidebar-footer{margin-top:auto;padding:16px}
+.new-btn{width:100%;padding:9px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-family:'Geist',sans-serif;cursor:pointer;transition:all 0.12s;text-align:center}
+.new-btn:hover{background:var(--bg);color:var(--text);border-color:var(--border2)}
+.empty-hist{font-size:12px;color:var(--text3);padding:8px 4px;line-height:1.5}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;min-height:100vh}
+.topbar{padding:14px 28px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-left .tb-title{font-size:14px;font-weight:500;color:var(--text)}
+.topbar-left .tb-sub{font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block}
+.content{padding:28px;flex:1;max-width:860px}
+
+/* FORM */
+.form-block{margin-bottom:24px}
+.block-label{font-size:10px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0.02em}
+.field input,.field select{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Geist',sans-serif;color:var(--text);background:var(--bg2);outline:none;transition:border-color 0.12s;width:100%;appearance:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:5px 14px;border:1px solid var(--border);border-radius:99px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg2);font-family:'Geist',sans-serif;transition:all 0.12s}
+.pill.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.am-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.am{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text2);background:var(--bg2);transition:all 0.12s;user-select:none}
+.am:hover{border-color:var(--border2)}
+.am.on{border-color:var(--accent);color:var(--text);background:var(--bg)}
+.am-box{width:13px;height:13px;border-radius:3px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.12s}
+.am.on .am-box{background:var(--accent);border-color:var(--accent)}
+.am.on .am-box::after{content:'';display:block;width:5px;height:5px;background:white;border-radius:1px}
+.m2-inline{display:flex;align-items:center;gap:6px;margin-top:6px}
+.m2-inline label{font-size:11px;color:var(--text3);white-space:nowrap}
+.m2-inline input{width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Geist',sans-serif;color:var(--text)}
+.cta{width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;font-size:14px;font-family:'Geist',sans-serif;font-weight:500;cursor:pointer;transition:opacity 0.12s;margin-top:4px;letter-spacing:0.01em}
+.cta:hover{opacity:0.85}
+.cta:disabled{opacity:0.5;cursor:not-allowed}
+
+/* LOADING */
+.loading-wrap{padding:32px 0;text-align:center}
+.loading-bar-outer{height:2px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.loading-bar-inner{height:100%;background:var(--accent);border-radius:99px;transition:width 0.5s ease;width:0%}
+.loading-txt{font-size:13px;color:var(--text2)}
+
+/* RESULTS */
+.divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+.results-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+.results-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--text)}
+.results-meta{font-size:11px;color:var(--text3)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.metric.hi{background:var(--accent);border-color:var(--accent)}
+.m-l{font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.metric.hi .m-l{color:rgba(255,255,255,0.4)}
+.m-v{font-family:'Instrument Serif',serif;font-size:20px;color:var(--text)}
+.metric.hi .m-v{color:white}
+.m-s{font-size:10px;color:var(--text3);margin-top:3px}
+.metric.hi .m-s{color:rgba(255,255,255,0.3)}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{text-align:left;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--text3);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg2)}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg)}
+.price-td{font-weight:500;color:var(--text)}
+.dist-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.src-zp{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500;background:#EEF2FF;color:#4338CA;margin-right:2px}
+.src-ap{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500;background:#FEF3C7;color:#92400E;margin-right:2px}
+.rec{margin-top:18px;border:1px solid var(--border2);border-radius:10px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--bg2)}
+.r-label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.r-price{font-family:'Instrument Serif',serif;font-size:28px;color:var(--text)}
+.r-range{font-size:12px;color:var(--text3);margin-top:4px}
+.r-margin{font-family:'Instrument Serif',serif;font-size:24px;color:var(--text)}
+.filter-log{margin-top:14px;padding:12px 14px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--text3);line-height:2}
+.filter-log strong{color:var(--text2)}
+.no-results{text-align:center;padding:32px;color:var(--text3);font-size:14px}
+
+/* LOCATION */
+.loc-levels{display:flex;flex-direction:column;gap:10px}
+.loc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="wordmark">
+        Tasador <em>inmuebles</em>
+        <small>Mercado Argentino</small>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Historial</div>
+      <div class="hist-list" id="hist-list">
+        <div class="empty-hist">Las tasaciones aparecerán acá</div>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="new-btn" onclick="resetForm()">+ Nueva tasación</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="tb-title" id="topbar-title">Nueva tasación</div>
+        <div class="tb-sub">
+          <span class="status-dot"></span>
+          ZonaProp + Argenprop · datos en tiempo real
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- OPERACIÓN -->
+      <div class="form-block">
+        <div class="block-label">Tipo de operación</div>
+        <div class="fg">
+          <div class="field">
+            <label>Tipo de inmueble</label>
+            <select id="tipo">
+              <option value="departamento">Departamento</option>
+              <option value="casa">Casa</option>
+              <option value="ph">PH</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Operación</label>
+            <div class="pill-row">
+              <button class="pill on" onclick="selPill(this,'op')">Venta</button>
+              <button class="pill" onclick="selPill(this,'op')">Alquiler</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UBICACIÓN -->
+      <div class="form-block">
+        <div class="block-label">Ubicación</div>
+        <div class="loc-levels">
+          <div class="loc-row">
+            <div class="field">
+              <label>Zona</label>
+              <select id="zona" onchange="updateZona()">
+                <option value="">— Seleccioná —</option>
+                <option value="caba">CABA</option>
+                <option value="provincia">Provincia de Buenos Aires</option>
+              </select>
+            </div>
+            <div class="field" id="field-barrio" style="display:none">
+              <label id="label-barrio">Barrio</label>
+              <select id="barrio" onchange="updateLocalidad()"></select>
+            </div>
+            <div class="field" id="field-localidad" style="display:none">
+              <label>Localidad</label>
+              <select id="localidad"></select>
+            </div>
+          </div>
+          <div class="field" id="field-ref" style="display:none">
+            <label>Referencia exacta <span style="font-weight:400;color:var(--text3)">(recomendado — mejora la precisión)</span></label>
+            <input type="text" id="referencia" placeholder='Ej: "Moldes y Monroe", "cerca del río", "zona Panamericana"' />
+          </div>
+        </div>
+      </div>
+
+      <!-- CARACTERÍSTICAS -->
+      <div class="form-block">
+        <div class="block-label">Características</div>
+        <div class="fg">
+          <div class="field">
+            <label>Ambientes</label>
+            <select id="ambientes">
+              <option value="1">1 ambiente</option>
+              <option value="2" selected>2 ambientes</option>
+              <option value="3">3 ambientes</option>
+              <option value="4">4 ambientes</option>
+              <option value="5">5 ambientes</option>
+              <option value="6">6+ ambientes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Superficie cubierta (m²)</label>
+            <input type="number" id="m2_cubiertos" placeholder="Ej: 55" min="10" max="5000" />
+          </div>
+          <div class="field">
+            <label>Antigüedad</label>
+            <select id="antiguedad">
+              <option value="a estrenar">A estrenar</option>
+              <option value="1 a 10 años">1 a 10 años</option>
+              <option value="10 a 20 años" selected>10 a 20 años</option>
+              <option value="20 a 30 años">20 a 30 años</option>
+              <option value="30 a 40 años">30 a 40 años</option>
+              <option value="40 a 50 años">40 a 50 años</option>
+              <option value="más de 50 años">Más de 50 años</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- AMENITIES -->
+      <div class="form-block">
+        <div class="block-label">Amenities</div>
+        <div class="am-grid">
+          <label class="am" onclick="toggleAm(this,'balcon')">
+            <div class="am-box"></div>Balcón
+          </label>
+          <label class="am" onclick="toggleAm(this,'cochera')">
+            <div class="am-box"></div>Cochera
+          </label>
+          <label class="am" onclick="toggleAm(this,'baulera')">
+            <div class="am-box"></div>Baulera
+          </label>
+          <label class="am" onclick="toggleAm(this,'jardin')">
+            <div class="am-box"></div>Jardín
+          </label>
+          <label class="am" onclick="toggleAm(this,'pileta')">
+            <div class="am-box"></div>Pileta
+          </label>
+          <label class="am" onclick="toggleAm(this,'gym')">
+            <div class="am-box"></div>Gimnasio
+          </label>
+          <label class="am" onclick="toggleAm(this,'seguridad')">
+            <div class="am-box"></div>Seguridad 24hs
+          </label>
+          <label class="am" onclick="toggleAm(this,'sum')">
+            <div class="am-box"></div>SUM
+          </label>
+          <label class="am" onclick="toggleAm(this,'terraza')">
+            <div class="am-box"></div>Terraza
+          </label>
+          <label class="am" onclick="toggleAm(this,'quincho')">
+            <div class="am-box"></div>Quincho
+          </label>
+        </div>
+        <!-- M2 inputs para amenities con superficie -->
+        <div id="am-m2-fields" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:12px"></div>
+      </div>
+
+      <button class="cta" id="btn-tasar" onclick="tasar()">Buscar comparables y tasar →</button>
+
+      <!-- LOADING -->
+      <div id="loading" style="display:none">
+        <hr class="divider" />
+        <div class="loading-wrap">
+          <div class="loading-bar-outer"><div class="loading-bar-inner" id="lbar"></div></div>
+          <div class="loading-txt" id="ltxt">Iniciando búsqueda...</div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="results" style="display:none">
+        <hr class="divider" />
+        <div class="results-header">
+          <div class="results-title">Resultados</div>
+          <div class="results-meta" id="res-meta"></div>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="table-wrap" id="table-wrap"></div>
+        <div class="rec" id="rec-box"></div>
+        <div class="filter-log" id="filter-log"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const BARRIOS_CABA = ['Palermo','Belgrano','Belgrano R','Belgrano C','Palermo Soho','Palermo Hollywood','Las Cañitas','Recoleta','Barrio Norte','Núñez','Saavedra','Colegiales','Villa Urquiza','Villa Crespo','Caballito','Almagro','Chacarita','Devoto','Villa Devoto','Flores','San Telmo','Retiro','Puerto Madero','Liniers','Mataderos','Villa del Parque','Villa Pueyrredón','Boedo','Parque Patricios','La Boca','Balvanera','Montserrat','San Nicolás','Floresta','Villa Ortúzar','Coghlan','Agronomía','Paternal','Otro barrio CABA'];
+
+const PARTIDOS = ['San Isidro','Vicente López','San Martín','Tres de Febrero','Morón','Ituzaingó','Hurlingham','La Matanza','Lomas de Zamora','Quilmes','Lanús','Avellaneda','Tigre','Pilar','Escobar','Zárate','San Fernando','Campana','Malvinas Argentinas','José C. Paz','San Miguel','Merlo','Moreno','General Rodríguez','Luján','Almirante Brown','Esteban Echeverría','Ezeiza','Berazategui','Florencio Varela','Presidente Perón','Otro'];
+
+const LOCALIDADES = {
+  'San Isidro':['Martínez','Olivos','La Lucila','Acassuso','Beccar','Boulogne','La Horqueta','Villa Adelina','San Isidro centro'],
+  'Vicente López':['Florida','Florida Oeste','Munro','Vicente López centro'],
+  'Tigre':['Tigre centro','Nordelta','El Talar','Don Torcuato','General Pacheco','Rincón de Milberg','Ricardo Rojas','Benavídez'],
+  'Pilar':['Pilar centro','Del Viso','Manzanares','Fátima','Manuel Alberti','Derqui','Zelaya'],
+  'San Martín':['San Martín centro','Villa Lynch','Villa Maipú','José León Suárez'],
+  'Morón':['Morón centro','Castelar','Haedo','El Palomar'],
+  'Ituzaingó':['Ituzaingó centro','Villa del Parque'],
+  'Hurlingham':['Hurlingham centro','William Morris','Villa Tesei'],
+  'Quilmes':['Quilmes centro','Bernal','Bernal Oeste','Ezpeleta','Wilde','Don Bosco'],
+  'Lomas de Zamora':['Lomas centro','Banfield','Temperley','Turdera','Lavallol'],
+  'Lanús':['Lanús centro','Lanús Este','Lanús Oeste','Remedios de Escalada','Monte Chingolo'],
+  'Avellaneda':['Avellaneda centro','Dock Sud','Sarandí','Piñeyro','Villa Domínico'],
+  'La Matanza':['Ramos Mejía','San Justo','Isidro Casanova','Laferrere','González Catán','Aldo Bonzi'],
+  'Merlo':['Merlo centro','Pontevedra','Mariano Acosta','San Antonio de Padua'],
+  'Moreno':['Moreno centro','Francisco Álvarez','Trujui','La Reja'],
+  'Escobar':['Escobar centro','Belén de Escobar','Ingeniero Maschwitz','Garín'],
+  'San Fernando':['San Fernando centro','Victoria','Virreyes','Talar de Pacheco'],
+  'Malvinas Argentinas':['Los Polvorines','Grand Bourg','Tortuguitas'],
+  'José C. Paz':['José C. Paz centro','Santa Rosa'],
+  'San Miguel':['San Miguel centro','Muñiz','Bella Vista'],
+  'Tres de Febrero':['Caseros','Ciudadela','Santos Lugares'],
+  'Almirante Brown':['Adrogué','Burzaco','Longchamps','Claypole'],
+  'Esteban Echeverría':['Monte Grande','Canning','El Jagüel'],
+  'Ezeiza':['Ezeiza centro','Tristán Suárez'],
+  'Berazategui':['Berazategui centro','Hudson','Ranelagh'],
+  'Florencio Varela':['Florencio Varela centro','Bosques'],
+};
+
+const amenities = {};
+const AM_CON_M2 = ['balcon','jardin','terraza'];
+let operacion = 'venta';
+
+function selPill(btn, group) {
+  btn.closest('.pill-row').querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  if(group==='op') operacion = btn.textContent.toLowerCase();
+}
+
+function updateZona() {
+  const zona = document.getElementById('zona').value;
+  const fb = document.getElementById('field-barrio');
+  const fl = document.getElementById('field-localidad');
+  const fr = document.getElementById('field-ref');
+  const barrio = document.getElementById('barrio');
+  const label = document.getElementById('label-barrio');
+
+  fl.style.display = 'none';
+  document.getElementById('localidad').innerHTML = '';
+
+  if (!zona) { fb.style.display='none'; fr.style.display='none'; return; }
+
+  if (zona === 'caba') {
+    label.textContent = 'Barrio';
+    barrio.innerHTML = BARRIOS_CABA.map(b => `<option value="${b}">${b}</option>`).join('');
+  } else {
+    label.textContent = 'Partido';
+    barrio.innerHTML = PARTIDOS.map(p => `<option value="${p}">${p}</option>`).join('');
+  }
+
+  fb.style.display = 'block';
+  fr.style.display = 'block';
+  if (zona === 'provincia') updateLocalidad();
+}
+
+function updateLocalidad() {
+  const zona = document.getElementById('zona').value;
+  if (zona !== 'provincia') return;
+  const partido = document.getElementById('barrio').value;
+  const fl = document.getElementById('field-localidad');
+  const loc = document.getElementById('localidad');
+  const locs = LOCALIDADES[partido];
+  if (locs) {
+    loc.innerHTML = locs.map(l => `<option value="${l}">${l}</option>`).join('');
+    fl.style.display = 'block';
+  } else {
+    fl.style.display = 'none';
+  }
+}
+
+function toggleAm(el, key) {
+  el.classList.toggle('on');
+  amenities[key] = el.classList.contains('on');
+  updateM2Fields();
+}
+
+function updateM2Fields() {
+  const container = document.getElementById('am-m2-fields');
+  container.innerHTML = '';
+  AM_CON_M2.forEach(key => {
+    if (amenities[key]) {
+      const label = key === 'balcon' ? 'Balcón' : key === 'jardin' ? 'Jardín' : 'Terraza';
+      const div = document.createElement('div');
+      div.className = 'm2-inline';
+      div.innerHTML = `<label>${label} m²:</label><input type="number" id="m2_${key}" placeholder="m²" min="1" max="2000" />`;
+      container.appendChild(div);
+    }
+  });
+}
+
+function getLocalidadFinal() {
+  const zona = document.getElementById('zona').value;
+  if (!zona) return '';
+  if (zona === 'caba') return document.getElementById('barrio').value;
+  const partido = document.getElementById('barrio').value;
+  const fl = document.getElementById('field-localidad');
+  if (fl.style.display !== 'none') return document.getElementById('localidad').value;
+  return partido;
+}
+
+function fmt(n) {
+  if (!n) return '—';
+  return 'USD ' + Math.round(n).toLocaleString('es-AR');
+}
+
+function fmtM2(n) { return n ? n + ' m²' : '—'; }
+function fmtAnt(n) { return n ? n + ' años' : 'n/d'; }
+
+let lbarTimer;
+function startLoading(steps) {
+  let si = 0;
+  const lbar = document.getElementById('lbar');
+  const ltxt = document.getElementById('ltxt');
+  lbar.style.width = '0%';
+  lbarTimer = setInterval(() => {
+    if (si < steps.length) {
+      lbar.style.width = steps[si][0] + '%';
+      ltxt.textContent = steps[si][1];
+      si++;
+    }
+  }, 2500);
+}
+
+function stopLoading() {
+  clearInterval(lbarTimer);
+  document.getElementById('lbar').style.width = '100%';
+}
+
+async function tasar() {
+  const zona = document.getElementById('zona').value;
+  if (!zona) { alert('Por favor seleccioná la zona.'); return; }
+
+  const localidad = getLocalidadFinal();
+  if (!localidad) { alert('Por favor seleccioná el barrio o localidad.'); return; }
+
+  const tipo = document.getElementById('tipo').value;
+  const ambientes = document.getElementById('ambientes').value;
+  const m2_cubiertos = document.getElementById('m2_cubiertos').value;
+  const antiguedad = document.getElementById('antiguedad').value;
+  const referencia = document.getElementById('referencia').value;
+
+  const amenitiesPayload = { ...amenities };
+  AM_CON_M2.forEach(key => {
+    const inp = document.getElementById('m2_' + key);
+    if (inp && inp.value) amenitiesPayload[key + '_m2'] = parseFloat(inp.value);
+  });
+
+  document.getElementById('btn-tasar').disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+
+  startLoading([
+    [15, `Scrapeando ZonaProp — ${localidad}...`],
+    [30, 'Continuando scraping ZonaProp...'],
+    [50, `Scrapeando Argenprop — ${localidad}...`],
+    [65, 'Aplicando filtros de ubicación...'],
+    [78, 'Filtrando por m² y antigüedad...'],
+    [90, 'Calculando tasación...'],
+  ]);
+
+  try {
+    const resp = await fetch('/api/tasar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo, operacion, localidad, referencia, ambientes, m2_cubiertos, antiguedad, amenities: amenitiesPayload })
+    });
+    const data = await resp.json();
+    stopLoading();
+    document.getElementById('loading').style.display = 'none';
+    renderResults(data, localidad, tipo, ambientes, m2_cubiertos, antiguedad);
+    cargarHistorial();
+  } catch(e) {
+    stopLoading();
+    document.getElementById('loading').style.display = 'none';
+    alert('Error al tasar. Por favor intentá de nuevo.');
+  }
+
+  document.getElementById('btn-tasar').disabled = false;
+}
+
+function renderResults(data, localidad, tipo, ambientes, m2, antiguedad) {
+  const { listings, stats, tasacion } = data;
+  const resDiv = document.getElementById('results');
+  resDiv.style.display = 'block';
+
+  // Meta
+  document.getElementById('res-meta').textContent =
+    `${localidad} · ${ambientes} amb${m2?' · '+m2+' m²':''} · ${antiguedad}`;
+
+  // Metrics
+  if (tasacion) {
+    document.getElementById('metrics').innerHTML = `
+      <div class="metric">
+        <div class="m-l">Mínimo</div>
+        <div class="m-v">${fmt(tasacion.min_precio)}</div>
+        <div class="m-s">comparable más bajo</div>
+      </div>
+      <div class="metric hi">
+        <div class="m-l">Mediana</div>
+        <div class="m-v">${fmt(tasacion.mediana_precio)}</div>
+        <div class="m-s">${stats.finales} comparables</div>
+      </div>
+      <div class="metric">
+        <div class="m-l">Máximo</div>
+        <div class="m-v">${fmt(tasacion.max_precio)}</div>
+        <div class="m-s">comparable más alto</div>
+      </div>
+      <div class="metric">
+        <div class="m-l">USD / m²</div>
+        <div class="m-v">${tasacion.mediana_m2 ? tasacion.mediana_m2.toLocaleString('es-AR') : '—'}</div>
+        <div class="m-s">mediana de zona</div>
+      </div>`;
+  }
+
+  // Table
+  if (listings && listings.length > 0) {
+    const rows = listings.map(l => `
+      <tr>
+        <td><span class="src-${l.fuente==='ZonaProp'?'zp':'ap'}">${l.fuente==='ZonaProp'?'ZP':'AP'}</span></td>
+        <td>${l.address || l.title?.substring(0,40) || '—'}</td>
+        <td>${fmtM2(l.m2_cubiertos)}</td>
+        <td>${fmtM2(l.m2_totales)}</td>
+        <td>${fmtAnt(l.antiguedad)}</td>
+        <td class="price-td">${fmt(l.precio)}</td>
+        <td>${l.usd_m2 ? l.usd_m2.toLocaleString('es-AR') : '—'}</td>
+        <td>${l.distancia_m ? '<span class="dist-tag">'+l.distancia_m+' m</span>' : '—'}</td>
+      </tr>`).join('');
+
+    document.getElementById('table-wrap').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Fuente</th><th>Dirección</th><th>m² cub.</th><th>m² tot.</th>
+          <th>Antigüedad</th><th>Precio</th><th>USD/m²</th><th>Distancia</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } else {
+    document.getElementById('table-wrap').innerHTML = '<div class="no-results">No se encontraron comparables con los filtros aplicados.</div>';
+  }
+
+  // Rec box
+  if (tasacion) {
+    document.getElementById('rec-box').innerHTML = `
+      <div>
+        <div class="r-label">Precio de publicación sugerido</div>
+        <div class="r-price">${fmt(tasacion.precio_publicacion)}</div>
+        <div class="r-range">Cierre objetivo: ${fmt(tasacion.precio_cierre)} · Piso: ${fmt(tasacion.precio_piso)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="r-label">Margen de negociación</div>
+        <div class="r-margin">${tasacion.margen}</div>
+      </div>`;
+  }
+
+  // Filter log
+  const radio = stats.radio_usado ? (stats.radio_usado === 'barrio completo' ? 'barrio completo (sin radio exacto)' : stats.radio_usado + ' m') : 'sin filtro de distancia';
+  document.getElementById('filter-log').innerHTML = `
+    <strong>${stats.total}</strong> publicaciones analizadas ·
+    <strong>${stats.excluidos_nuevos}</strong> excluidas (nuevas/pozo) ·
+    <strong>${stats.excluidos_m2}</strong> fuera de rango m² ·
+    <strong>${stats.excluidos_antiguedad}</strong> fuera de antigüedad ·
+    <strong>${stats.excluidos_distancia}</strong> fuera de radio ·
+    <strong>${stats.finales} comparables finales</strong> ·
+    Radio: ${radio}`;
+
+  resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function cargarHistorial() {
+  try {
+    const resp = await fetch('/api/historial');
+    const hist = await resp.json();
+    const container = document.getElementById('hist-list');
+    if (!hist || hist.length === 0) {
+      container.innerHTML = '<div class="empty-hist">Las tasaciones aparecerán acá</div>';
+      return;
+    }
+    container.innerHTML = hist.slice(0, 8).map((h, i) => `
+      <div class="hist-item ${i===0?'active':''}">
+        <div class="hi-row">
+          <span class="hi-name">${h.tipo.charAt(0).toUpperCase()+h.tipo.slice(1)} · ${h.localidad}</span>
+          <span class="hi-price">${h.precio_publicacion ? 'USD '+Math.round(h.precio_publicacion).toLocaleString('es-AR') : '—'}</span>
+        </div>
+        <div class="hi-meta">${h.ambientes} amb${h.m2_cubiertos?' · '+h.m2_cubiertos+' m²':''} · ${h.antiguedad}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+function resetForm() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+cargarHistorial();
+</script>
+</body>
+</html>
